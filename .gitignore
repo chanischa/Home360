@@ -1,0 +1,44 @@
+# Home360 .gitignore
+
+# OS
+.DS_Store
+Thumbs.db
+Desktop.ini
+
+# IDE
+.vscode/*
+!.vscode/extensions.json
+.idea/
+*.swp
+*.swo
+
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+dist/
+build/
+.eggs/
+*.egg
+.venv/
+venv/
+env/
+
+# Snowflake
+.snowflake/cortex/cache/
+snowflake_credentials.json
+
+# Environment / secrets
+.env
+.env.local
+*.pem
+*.key
+.streamlit/secrets.toml
+
+# Logs
+*.log
+
+# Temp
+*.tmp
+*.bak
+~$*
