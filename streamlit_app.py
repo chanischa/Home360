@@ -1,23 +1,39 @@
 import streamlit as st
 import json
+import pandas as pd
 from snowflake.connector import connect
+from cryptography.hazmat.primitives import serialization
 
 # ─────────────────────────────────────────────────────────
 # Home360 — Next Best Action Copilot for Home Insurance
-# Community Cloud version (public URL)
+# Community Cloud version (public URL, key-pair auth)
 # ─────────────────────────────────────────────────────────
 
 st.set_page_config(page_title="Home360 Copilot", page_icon="🏠", layout="wide")
 
-# ── Connection ───────────────────────────────────────────
+# ── Connection (key-pair auth, no password) ──────────────
 @st.cache_resource
 def get_connection():
-    return connect(**st.secrets["connections"]["snowflake"])
+    sf = st.secrets["snowflake"]
+    private_key_pem = sf["private_key"].encode()
+    private_key = serialization.load_pem_private_key(private_key_pem, password=None)
+    private_key_bytes = private_key.private_bytes(
+        encoding=serialization.Encoding.DER,
+        format=serialization.PrivateFormat.PKCS8,
+        encryption_algorithm=serialization.NoEncryption(),
+    )
+    return connect(
+        account=sf["account"],
+        user=sf["user"],
+        private_key=private_key_bytes,
+        role=sf["role"],
+        warehouse=sf["warehouse"],
+        database=sf["database"],
+        schema=sf["schema"],
+    )
 
 sf_conn = get_connection()
 
-
-import pandas as pd
 
 def run_query(sql):
     cur = sf_conn.cursor()
