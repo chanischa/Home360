@@ -1,6 +1,6 @@
 import streamlit as st
 import json
-import os
+from snowflake.connector import connect
 
 # ─────────────────────────────────────────────────────────
 # Home360 — Next Best Action Copilot for Home Insurance
@@ -10,16 +10,27 @@ import os
 st.set_page_config(page_title="Home360 Copilot", page_icon="🏠", layout="wide")
 
 # ── Connection ───────────────────────────────────────────
-conn = st.connection("snowflake")
+@st.cache_resource
+def get_connection():
+    return connect(**st.secrets["connections"]["snowflake"])
 
+sf_conn = get_connection()
+
+
+import pandas as pd
 
 def run_query(sql):
-    return conn.query(sql)
+    cur = sf_conn.cursor()
+    cur.execute(sql)
+    columns = [desc[0] for desc in cur.description]
+    data = cur.fetchall()
+    return pd.DataFrame(data, columns=columns)
 
 
 def call_procedure(sql):
-    df = conn.query(sql)
-    raw = df.iloc[0, 0]
+    cur = sf_conn.cursor()
+    cur.execute(sql)
+    raw = cur.fetchone()[0]
     return json.loads(raw) if isinstance(raw, str) else raw
 
 
